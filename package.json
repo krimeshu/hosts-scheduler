@@ -1,0 +1,12 @@
+{
+  "name": "hosts-scheduler",
+  "version": "0.1.0",
+  "description": "A command tool to swtich hosts file quickly.",
+  "main": "index.js",
+  "scripts": {
+    "test": "node --harmony index test",
+    "start": "node --harmony index"
+  },
+  "author": "",
+  "license": "ISC"
+}
