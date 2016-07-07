@@ -55,9 +55,16 @@ hs
 ## 常用命令
 
 ```base
-hs [-n]                 在现有自定义分组间轮流切换
-hs -g [<groupName>]     切换到对应分组（未指定分组名则关闭所有自定义分组）
-hs -s                   查看当前分组启用状态
-hs -f                   清空DNS缓存
-hs -d                   禁用所有分组的规则
+hs [-n]
+hs [--next]                 在现有自定义分组间轮流切换
+hs -g [<groupName>]
+hs --group [<groupName>]    切换到对应分组（未指定分组名则关闭所有自定义分组）
+hs -s
+hs --state                  查看当前分组启用状态
+hs -f
+hs --flush                  清空DNS缓存
+hs -d
+hs --disable                禁用所有分组的规则
+hs -h
+hs --help                   查看帮助
 ```

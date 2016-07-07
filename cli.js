@@ -21,7 +21,9 @@ var funcMap = {
         '-f': 'flushDNS',
         '--flush': 'flushDNS',
         '-d': 'disableAll',
-        '--disable': 'disableAll'
+        '--disable': 'disableAll',
+        '-h': 'help',
+        '--help': 'help'
     },
     funcName = null,
     argCache = [];
