@@ -15,7 +15,13 @@ var funcMap = {
         '-t': 'test',
         '--test': 'test',
         '-g': 'enableGroup',
-        '--group': 'enableGroup'
+        '--group': 'enableGroup',
+        '-s': 'showState',
+        '--state': 'showState',
+        '-f': 'flushDNS',
+        '--flush': 'flushDNS',
+        '-d': 'disableAll',
+        '--disable': 'disableAll'
     },
     funcName = null,
     argCache = [];

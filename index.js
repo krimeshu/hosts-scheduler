@@ -38,8 +38,7 @@ module.exports = {
         defaultHosts.enableGroup(defaultHosts.getGroupAfterActive());
         defaultHosts.save();
 
-        defaultHosts.printGroupState();
-
+        this.showState(defaultHosts);
         this.flushDNS();
     },
     // 启用某个分组
@@ -47,13 +46,32 @@ module.exports = {
         var defaultHosts = new HostsEntity();
         defaultHosts.load(HOSTS_PATH);
 
-        console.log('\nSwitching active group to: ' + groupName);
+        console.log('\nSwitching active group to: ' + (groupName || '(default)'));
         defaultHosts.enableGroup(groupName);
         defaultHosts.save();
 
-        defaultHosts.printGroupState();
+        this.showState(defaultHosts);
+        this.flushDNS();
+    },
+    // 禁用所有规则
+    'disableAll': function () {
+        var defaultHosts = new HostsEntity();
+        defaultHosts.load(HOSTS_PATH);
+
+        defaultHosts.disableAll();
+        defaultHosts.save();
 
         this.flushDNS();
+    },
+    // 显示当前分组状态
+    'showState': function (_hosts) {
+        var defaultHosts = _hosts;
+        if (!defaultHosts) {
+            defaultHosts = new HostsEntity();
+            defaultHosts.load(HOSTS_PATH);
+        }
+
+        defaultHosts.printGroupState();
     },
     // 刷新DNS缓存
     'flushDNS': function () {
