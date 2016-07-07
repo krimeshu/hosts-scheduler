@@ -3,9 +3,12 @@
   "version": "0.1.0",
   "description": "A command tool to swtich hosts file quickly.",
   "main": "index.js",
+  "bin": {
+    "hs": "./cli.js"
+  },
   "scripts": {
-    "test": "node --harmony index test",
-    "start": "node --harmony index"
+    "test": "node cli.js --test",
+    "start": "node cli.js"
   },
   "author": "",
   "license": "ISC"

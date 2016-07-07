@@ -256,6 +256,20 @@ HostsEntity.prototype = {
             nextIndex = Math.max(1, (currentIndex + 1) % groupSet.length);
 
         return groupSet[nextIndex].name;
+    },
+    // 显示目前使用的分组情况
+    'printGroupState': function () {
+        var self = this,
+            groupSet = self.groupSet,
+
+            currentGroupName = self.getActiveGroup();
+
+        console.log('\nCurrent group state:\n');
+        groupSet.forEach(function (group) {
+            var groupName = group.name,
+                isCurrent = groupName === currentGroupName;
+            console.log('\t%s%s%s', isCurrent ? '** ' : '   ', groupName || '(default group)', isCurrent ? ' **' : '');
+        });
     }
 };
 
