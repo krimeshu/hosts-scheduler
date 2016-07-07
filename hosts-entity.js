@@ -20,7 +20,8 @@ HostsEntity.ROW_TYPE = {
 };
 
 HostsEntity.prototype = {
-    load: function (filePath) {
+    // 加载某个hosts文件并解析到本对象
+    'load': function (filePath) {
         var self = this;
         var buffer = fs.readFileSync(filePath);
         var text = String(buffer);
@@ -29,7 +30,8 @@ HostsEntity.prototype = {
         self.loaded = true;
         self.parse(text);
     },
-    save: function () {
+    // 将本对象状态存入读取的hosts文件
+    'save': function () {
         var self = this,
             filePath = self.filePath,
             loaded = self.loaded;
@@ -38,7 +40,8 @@ HostsEntity.prototype = {
         }
         fs.writeFileSync(filePath, self.stringify());
     },
-    restore: function () {
+    // 将本对象状态恢复到最初读取时
+    'restore': function () {
         var self = this,
             rawText = self.rawText,
             loaded = self.loaded;
@@ -47,7 +50,8 @@ HostsEntity.prototype = {
         }
         self.parse(rawText);
     },
-    parse: function (text) {
+    // 将某段hosts内容解析到本对象
+    'parse': function (text) {
         var self = this,
             groupSet = self.groupSet = [],
             rowSet = self.rowSet = [],
@@ -57,7 +61,7 @@ HostsEntity.prototype = {
             rowTexts = text.split(/\r?\n/g),
             emptyReg = /^\s*$/,
             commentReg = /^#/,
-            groupBorderReg = /^#====\s*(.*?)$/,
+            groupBorderReg = /^#={4,}\s*(.*?)$/,
 
             defaultGroup = {
                 name: '',
@@ -73,7 +77,7 @@ HostsEntity.prototype = {
             if (emptyReg.test(rowText)) {
                 // 当前行是空行
                 row.text = rowText;
-                row.type = ROW_TYPE.EMPTY
+                row.type = ROW_TYPE.EMPTY;
                 currentGroup.members.push(row);
             } else if (commentReg.test(rowText)) {
                 // 是一条注释
@@ -116,31 +120,43 @@ HostsEntity.prototype = {
             rowSet.push(row);
         }
     },
-    stringify: function () {
+    // 将当前hosts状态转为文本
+    'stringify': function () {
         var self = this,
-            rowSet = self.rowSet,
+            groupSet = self.groupSet,
 
             ROW_TYPE = HostsEntity.ROW_TYPE,
 
             builder = [];
 
-        rowSet.forEach(function (row) {
-            switch (row.type) {
-                case ROW_TYPE.EMPTY:
-                    builder.push('');
-                    break;
-                case ROW_TYPE.COMMENT:
-                    builder.push('#' + row.text);
-                    break;
-                case ROW_TYPE.RULE:
-                    builder.push(row.text);
-                    break;
-            }
+        groupSet.forEach(function (group) {
+            var groupName = group.name,
+                groupMembers = group.members;
+            groupName && builder.push('#==== ' + groupName);
+            groupMembers.forEach(function (row) {
+                switch (row.type) {
+                    case ROW_TYPE.EMPTY:
+                        builder.push('');
+                        break;
+                    case ROW_TYPE.COMMENT:
+                        builder.push('#' + row.text);
+                        break;
+                    case ROW_TYPE.RULE:
+                        builder.push(row.text);
+                        break;
+                }
+            });
+            groupName && builder.push('#====');
         });
 
         return builder.join(os.platform() == 'win32' ? '\r\n' : '\n');
     },
-    getRowsOfGroup: function (groupName) {
+    // 大致判断某行内容是否可用的规则（排除普通文本注释的情况）
+    isAvailableRule: function (text) {
+        return /^\s*([\d]+\.[\d.]+|[\da-f]*::?[\da-f:]+)\s+(.+?)$/i.test(text);
+    },
+    // 获取指定分组名下的所有成员行（groupName为空时返回未分组的行）
+    'getRowsOfGroup': function (groupName) {
         var self = this,
             groupSet = self.groupSet,
             groups = groupSet.filter(function (group) {
@@ -153,16 +169,14 @@ HostsEntity.prototype = {
         });
         return rows;
     },
-    isAvailableRule: function (text) {
-        return /^\s*([\d]+\.[\d.]+|[\da-f]*::?[\da-f:]+)\s+(.+?)$/i.test(text);
-    },
-    enableGroup: function (groupName) {
+    // 启用指定分组名下的所有成员行（groupName为空时操作未分组的行）
+    'enableGroup': function (groupName) {
         var self = this,
 
             ROW_TYPE = HostsEntity.ROW_TYPE;
 
-        // 先禁用所有自定义分组
-        self.disableGroup();
+        // 先禁用所有规则
+        self.disableAll();
 
         // 再对选中分组进行启用
         self.getRowsOfGroup(groupName || '').forEach(function (row) {
@@ -172,27 +186,33 @@ HostsEntity.prototype = {
             }
         });
     },
-    disableGroup: function (groupName) {
+    // 禁用指定分组名下的所有成员行（groupName为空时操作未分组的行）
+    'disableGroup': function (groupName) {
         var self = this,
-            groupSet = self.groupSet,
 
-            ROW_TYPE = HostsEntity.ROW_TYPE,
+            ROW_TYPE = HostsEntity.ROW_TYPE;
 
-            hasTargetName = arguments.length > 0;
-
-        groupSet.forEach(function (group) {
-            if (hasTargetName && group.name !== groupName) {
-                // 指定了分组名，当前组名不对时，不处理
-                return;
+        self.getRowsOfGroup(groupName || '').forEach(function (row) {
+            if (row.type === ROW_TYPE.RULE) {
+                row.type = ROW_TYPE.COMMENT;
             }
-            group.members.forEach(function (row) {
-                if (row.type === ROW_TYPE.RULE) {
-                    row.type = ROW_TYPE.COMMENT;
-                }
-            });
         });
     },
-    getActiveGroup: function () {
+    // 禁用所有规则行
+    'disableAll': function () {
+        var self = this,
+            rowSet = self.rowSet,
+
+            ROW_TYPE = HostsEntity.ROW_TYPE;
+
+        rowSet.forEach(function (row) {
+            if (row.type === ROW_TYPE.RULE) {
+                row.type = ROW_TYPE.COMMENT;
+            }
+        });
+    },
+    // 获取当前启用的最后一个分组名
+    'getActiveGroup': function () {
         var self = this,
             groupSet = self.groupSet,
 
@@ -213,6 +233,29 @@ HostsEntity.prototype = {
         });
 
         return groupName;
+    },
+    // 获取当前启用分组的下一个自定义分组
+    'getGroupAfterActive': function () {
+        var self = this,
+            groupSet = self.groupSet,
+
+            currentGroupName = self.getActiveGroup(),
+            currentGroup = null;
+
+        groupSet.forEach(function (group) {
+            if (group.name === currentGroupName) {
+                currentGroup = group;
+            }
+        });
+
+        if (!currentGroup) {
+            return null;
+        }
+
+        var currentIndex = groupSet.indexOf(currentGroup),
+            nextIndex = Math.max(1, (currentIndex + 1) % groupSet.length);
+
+        return groupSet[nextIndex].name;
     }
 };
 
