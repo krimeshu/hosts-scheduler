@@ -1,6 +1,6 @@
 {
   "name": "hosts-scheduler",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "A command tool to swtich hosts file quickly.",
   "main": "index.js",
   "bin": {
