@@ -5,7 +5,7 @@
 安装 `hosts-scheduler`：
 
 ```bash
-npm install hosts-scheduler
+npm install hosts-scheduler -g
 ```
 
 之后就可以通过 `hs` 命令快捷调用了：
@@ -49,10 +49,12 @@ hs
 ## 常用命令
 
 ```base
-hs [-n]
-hs [--next]                 在现有自定义分组间轮流切换
-hs -g [<groupName>]
-hs --group [<groupName>]    切换到对应分组（未指定分组名则关闭所有自定义分组）
+hs -v
+hs --version                查看版本
+hs [-g] [<groupName>]
+hs [--group] [<groupName>]  切换到对应分组（未指定分组名则关闭所有自定义分组）
+hs -n
+hs --next                   在现有自定义分组间轮流切换
 hs -s
 hs --state                  查看当前分组启用状态
 hs -f
