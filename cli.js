@@ -5,17 +5,19 @@ var main = require('./');
 var args = process.argv.slice(2);
 
 if (args.length == 0) {
-    main.switchNext();
+    main.help();
     return;
 }
 
 var funcMap = {
+        '-v': 'version',
+        '--version': 'version',
+        '-g': 'enableGroup',
+        '--group': 'enableGroup',
         '-n': 'switchNext',
         '--next': 'switchNext',
         '-t': 'test',
         '--test': 'test',
-        '-g': 'enableGroup',
-        '--group': 'enableGroup',
         '-s': 'showState',
         '--state': 'showState',
         '-f': 'flushDNS',
@@ -34,7 +36,7 @@ for (var i = 0, arg; arg = args[i]; i++) {
 
     if (newFunc) {
         if (funcName || argCache.length) {
-            callMain(funcName || 'enableGroup', argCache);
+            callMain(funcName || 'help', argCache);
         }
         funcName = newName;
         argCache = [];
@@ -46,7 +48,7 @@ for (var i = 0, arg; arg = args[i]; i++) {
     }
 }
 
-callMain(funcName || 'enableGroup', argCache);
+callMain(funcName || 'help', argCache);
 
 function callMain(funcName, args) {
     main[funcName].apply(main, args);

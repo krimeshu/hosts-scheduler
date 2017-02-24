@@ -2,22 +2,16 @@
 
 ## 使用方法
 
-首先切换到 `hosts-scheduler` 所在目录：
+安装 `hosts-scheduler`：
 
 ```bash
-cd path/to/hosts-scheduler
-```
-
-初次使用时，请建立命令链接，方便今后快速调用：
-
-```base
-npm link
+npm install hosts-scheduler
 ```
 
 之后就可以通过 `hs` 命令快捷调用了：
 
 ```base
-hs
+hs group1
 hs -g group1
 ```
 

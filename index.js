@@ -29,6 +29,11 @@ module.exports = {
         console.log(line);
         console.log(defaultHosts.stringify());
     },
+    // 查看版本
+    'version': function () {
+        var version = require('./package.json').version;
+        console.log('v' + version);
+    },
     // 切换到下一个自定义分组
     'switchNext': function () {
         var defaultHosts = new HostsEntity();
@@ -47,6 +52,10 @@ module.exports = {
         defaultHosts.load(HOSTS_PATH);
 
         console.log('\nSwitching active group to: ' + (groupName || '(default)'));
+        if (!defaultHosts.hasGroup(groupName)) {
+            console.log('\n Group: ' + groupName + ' not found!');
+            return;
+        }
         defaultHosts.enableGroup(groupName);
         defaultHosts.save();
 
@@ -90,10 +99,12 @@ module.exports = {
     // 查看帮助
     'help': function () {
         var helpText = '\n\
-        hs [-n]\n\
-        hs [--next]                 在现有自定义分组间轮流切换\n\
-        hs -g [<groupName>]\n\
-        hs --group [<groupName>]    切换到对应分组（未指定分组名则关闭所有自定义分组）\n\
+        hs -v\n\
+        hs --version                查看版本\n\
+        hs [-g] [<groupName>]\n\
+        hs [--group] [<groupName>]  切换到对应分组（未指定分组名则关闭所有自定义分组）\n\
+        hs -n\n\
+        hs --next                   在现有自定义分组间轮流切换\n\
         hs -s\n\
         hs --state                  查看当前分组启用状态\n\
         hs -f\n\

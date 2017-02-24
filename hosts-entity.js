@@ -155,6 +155,15 @@ HostsEntity.prototype = {
     isAvailableRule: function (text) {
         return /^\s*([\d]+\.[\d.]+|[\da-f]*::?[\da-f:]+)\s+(.+?)$/i.test(text);
     },
+    // 判断是否存在某个分组
+    'hasGroup': function (groupName) {
+        var self = this,
+            groupSet = self.groupSet,
+            groups = groupSet.filter(function (group) {
+                return group.name === groupName;
+            });
+        return groups.length > 0;
+    },
     // 获取指定分组名下的所有成员行（groupName为空时返回未分组的行）
     'getRowsOfGroup': function (groupName) {
         var self = this,
