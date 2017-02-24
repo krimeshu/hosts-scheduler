@@ -1,7 +1,17 @@
 {
   "name": "hosts-scheduler",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "A command tool to swtich hosts file quickly.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/krimeshu/hosts-scheduler.git"
+  },
+  "author": "krimeshu",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/krimeshu/hosts-scheduler/issues"
+  },
+  "homepage": "https://github.com/krimeshu/hosts-scheduler#readme",
   "main": "index.js",
   "bin": {
     "hs": "./cli.js"
@@ -9,7 +19,5 @@
   "scripts": {
     "test": "node cli.js --test",
     "start": "node cli.js"
-  },
-  "author": "",
-  "license": "ISC"
+  }
 }

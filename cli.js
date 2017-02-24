@@ -36,7 +36,7 @@ for (var i = 0, arg; arg = args[i]; i++) {
 
     if (newFunc) {
         if (funcName || argCache.length) {
-            callMain(funcName || 'help', argCache);
+            callMain(funcName || 'enableGroup', argCache);
         }
         funcName = newName;
         argCache = [];
@@ -48,7 +48,7 @@ for (var i = 0, arg; arg = args[i]; i++) {
     }
 }
 
-callMain(funcName || 'help', argCache);
+callMain(funcName || 'enableGroup', argCache);
 
 function callMain(funcName, args) {
     main[funcName].apply(main, args);
