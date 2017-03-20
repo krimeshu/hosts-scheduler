@@ -20,6 +20,8 @@ var funcMap = {
         '--test': 'test',
         '-s': 'showState',
         '--state': 'showState',
+        '-l': 'listCurrentGroup',
+        '--ls': 'listCurrentGroup',
         '-f': 'flushDNS',
         '--flush': 'flushDNS',
         '-d': 'disableAll',

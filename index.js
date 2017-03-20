@@ -82,6 +82,16 @@ module.exports = {
 
         defaultHosts.printGroupState();
     },
+    // 显示当前分组规则
+    'listCurrentGroup': function (_hosts) {
+        var defaultHosts = _hosts;
+        if (!defaultHosts) {
+            defaultHosts = new HostsEntity();
+            defaultHosts.load(HOSTS_PATH);
+        }
+
+        defaultHosts.printActiveGroup();
+    },
     // 刷新DNS缓存
     'flushDNS': function () {
         var platform = os.platform();
@@ -107,6 +117,8 @@ module.exports = {
         hs --next                   在现有自定义分组间轮流切换\n\
         hs -s\n\
         hs --state                  查看当前分组启用状态\n\
+        hs -l\n\
+        hs --list                   列出当前启用的分组规则\n\
         hs -f\n\
         hs --flush                  清空DNS缓存\n\
         hs -d\n\

@@ -243,6 +243,35 @@ HostsEntity.prototype = {
 
         return groupName;
     },
+    // 显示当前启用的分组名
+    'printActiveGroup': function () {
+        var self = this,
+            groupSet = self.groupSet,
+
+            ROW_TYPE = HostsEntity.ROW_TYPE,
+
+            currentGroupName = self.getActiveGroup();
+
+        if (!currentGroupName) {
+            console.log('\nNo group enabled now.');
+            return;
+        }
+
+        console.log('\nCurrent group: %s\n', currentGroupName);
+        self.getRowsOfGroup(currentGroupName || '').forEach(function (row) {
+            switch (row.type) {
+                case ROW_TYPE.EMPTY:
+                    console.log('');
+                    break;
+                case ROW_TYPE.COMMENT:
+                    console.log('#' + row.text);
+                    break;
+                case ROW_TYPE.RULE:
+                    console.log(row.text);
+                    break;
+            }
+        });
+    },
     // 获取当前启用分组的下一个自定义分组
     'getGroupAfterActive': function () {
         var self = this,

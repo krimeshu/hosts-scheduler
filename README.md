@@ -58,6 +58,8 @@ hs -n
 hs --next                   在现有自定义分组间轮流切换
 hs -s
 hs --state                  查看当前分组启用状态
+hs -l               
+hs --list                   列出当前启用的分组规则
 hs -f
 hs --flush                  清空DNS缓存
 hs -d
