@@ -23,6 +23,8 @@ module.exports = {
         console.log(line);
         console.log(defaultHosts.stringify());
 
+        this.switchNext();
+
         console.log(line);
         console.log('Current active group: ' + defaultHosts.getActiveGroup());
         console.log('Group after active group: ' + defaultHosts.getGroupAfterActive());
@@ -96,7 +98,7 @@ module.exports = {
     'flushDNS': function () {
         var platform = os.platform();
         if (platform == 'win32' || platform == 'win64') {
-            childProcess.exec('ipconfig /release && ipconfig /renew && ipconfig /flushdns', done);
+            childProcess.exec('ipconfig /release & ipconfig /renew & ipconfig /flushdns', done);
         } else if (platform == 'darwin') {
             childProcess.exec('sudo killall -HUP mDNSResponder', done);
         } else if (platform == 'linux') {
