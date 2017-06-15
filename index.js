@@ -100,7 +100,7 @@ module.exports = {
         if (platform == 'win32' || platform == 'win64') {
             childProcess.exec('ipconfig /release & ipconfig /renew & ipconfig /flushdns', done);
         } else if (platform == 'darwin') {
-            childProcess.exec('sudo killall -HUP mDNSResponder', done);
+            childProcess.exec('sudo dscacheutil -flushcache && sudo killall -HUP mDNSResponder', done);
         } else if (platform == 'linux') {
             childProcess.exec('/etc/init.d/nscd restart', done);
         }
