@@ -14,8 +14,6 @@ var funcMap = {
         '--version': 'version',
         '-g': 'enableGroup',
         '--group': 'enableGroup',
-        '-n': 'switchNext',
-        '--next': 'switchNext',
         '-t': 'test',
         '--test': 'test',
         '-s': 'showState',

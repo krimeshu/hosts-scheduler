@@ -36,24 +36,12 @@ module.exports = {
         var version = require('./package.json').version;
         console.log('v' + version);
     },
-    // 切换到下一个自定义分组
-    'switchNext': function () {
-        var defaultHosts = new HostsEntity();
-        defaultHosts.load(HOSTS_PATH);
-
-        console.log('\nSwitching active group to next...');
-        defaultHosts.enableGroup(defaultHosts.getGroupAfterActive());
-        defaultHosts.save();
-
-        this.showState(defaultHosts);
-        this.flushDNS();
-    },
     // 启用某个分组
     'enableGroup': function (groupName) {
         var defaultHosts = new HostsEntity();
         defaultHosts.load(HOSTS_PATH);
 
-        console.log('\nSwitching active group to: ' + (groupName || '(default)'));
+        console.log('\nSwitching active group to: ' + (groupName || '[UNGROUPED]'));
         if (!defaultHosts.hasGroup(groupName)) {
             console.log('\n Group: ' + groupName + ' not found!');
             return;

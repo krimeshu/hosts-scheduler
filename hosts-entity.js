@@ -5,6 +5,12 @@
 var os = require('os');
 var fs = require('fs');
 
+var ROW_TYPE = {
+    EMPTY: 0,
+    COMMENT: 1,
+    RULE: 2
+};
+
 function HostsEntity() {
     this.filePath = null;
     this.groupSet = [];
@@ -13,10 +19,26 @@ function HostsEntity() {
     this.loaded = false;
 }
 
-HostsEntity.ROW_TYPE = {
-    EMPTY: 0,
-    COMMENT: 1,
-    RULE: 2
+HostsEntity.ROW_TYPE = ROW_TYPE;
+
+var PERMANENT_GROUP = '[ALWAYS_ON]';
+var ABANDONED_GROUP = '[ALWAYS_OFF]';
+
+const isAvailableRule = (text) => {
+    return /^\s*([\d]+\.[\d.]+|[\da-f]*::?[\da-f:]+)\s+(.+?)$/i.test(text);
+};
+
+const enableRuleRows = (row) => {
+    if (row.type === ROW_TYPE.COMMENT &&
+        isAvailableRule(row.text)) {
+        row.type = ROW_TYPE.RULE;
+    }
+};
+
+const disableRuleRows = (row) => {
+    if (row.type === ROW_TYPE.RULE) {
+        row.type = ROW_TYPE.COMMENT;
+    }
 };
 
 HostsEntity.prototype = {
@@ -61,14 +83,23 @@ HostsEntity.prototype = {
             rowTexts = text.split(/\r?\n/g),
             emptyReg = /^\s*$/,
             commentReg = /^#/,
-            groupBorderReg = /^#={4,}\s*(.*?)$/,
+            groupBorderReg = /^#={4,}\s*(.*?)$/;
 
-            defaultGroup = {
-                name: '',
-                members: []
-            },
-            currentGroup = defaultGroup;
-        groupSet.push(currentGroup);
+        var defaultGroup = {
+            name: '',
+            members: []
+        };
+        var permanentGroup = {
+            name: PERMANENT_GROUP,
+            members: []
+        };
+        var abandonedGroup = {
+            name: ABANDONED_GROUP,
+            members: []
+        };
+        groupSet.push(defaultGroup, permanentGroup, abandonedGroup);
+
+        var currentGroup = defaultGroup;
 
         for (var i = 0, l = rowTexts.length; i < l; i++) {
             var rowText = rowTexts[i],
@@ -117,6 +148,7 @@ HostsEntity.prototype = {
                 row.type = ROW_TYPE.RULE;
                 currentGroup.members.push(row);
             }
+            row.group = currentGroup;
             rowSet.push(row);
         }
     },
@@ -152,9 +184,7 @@ HostsEntity.prototype = {
         return builder.join(os.platform() == 'win32' ? '\r\n' : '\n');
     },
     // 大致判断某行内容是否可用的规则（排除普通文本注释的情况）
-    isAvailableRule: function (text) {
-        return /^\s*([\d]+\.[\d.]+|[\da-f]*::?[\da-f:]+)\s+(.+?)$/i.test(text);
-    },
+    isAvailableRule,
     // 判断是否存在某个分组
     'hasGroup': function (groupName) {
         var self = this,
@@ -187,13 +217,16 @@ HostsEntity.prototype = {
         // 先禁用所有规则
         self.disableAll();
 
+        // 永久组自动开启
+        self.getRowsOfGroup(PERMANENT_GROUP).forEach(enableRuleRows);
+
+        // 废弃组永远不被启用
+        if (groupName === ABANDONED_GROUP) {
+            console.log('\nAbandoned group "' + ABANDONED_GROUP + '" should not be enabled.\n');
+            return;
+        }
         // 再对选中分组进行启用
-        self.getRowsOfGroup(groupName || '').forEach(function (row) {
-            if (row.type === ROW_TYPE.COMMENT &&
-                self.isAvailableRule(row.text)) {
-                row.type = ROW_TYPE.RULE;
-            }
-        });
+        self.getRowsOfGroup(groupName || '').forEach(enableRuleRows);
     },
     // 禁用指定分组名下的所有成员行（groupName为空时操作未分组的行）
     'disableGroup': function (groupName) {
@@ -201,11 +234,16 @@ HostsEntity.prototype = {
 
             ROW_TYPE = HostsEntity.ROW_TYPE;
 
-        self.getRowsOfGroup(groupName || '').forEach(function (row) {
-            if (row.type === ROW_TYPE.RULE) {
-                row.type = ROW_TYPE.COMMENT;
-            }
-        });
+        // 废弃组自动关闭
+        self.getRowsOfGroup(ABANDONED_GROUP).forEach(disableRuleRows);
+
+        // 永久组永远不被关闭
+        if (groupName === PERMANENT_GROUP) {
+            console.log('\Permanent group "' + PERMANENT_GROUP + '" should not be disabled.\n');
+            return;
+        }
+
+        self.getRowsOfGroup(groupName || '').forEach(disableRuleRows);
     },
     // 禁用所有规则行
     'disableAll': function () {
@@ -215,33 +253,26 @@ HostsEntity.prototype = {
             ROW_TYPE = HostsEntity.ROW_TYPE;
 
         rowSet.forEach(function (row) {
+            var group = row.group;
+            if (group && group.name === PERMANENT_GROUP) {
+                // 永久规则不被禁用
+                return;
+            }
             if (row.type === ROW_TYPE.RULE) {
                 row.type = ROW_TYPE.COMMENT;
             }
         });
     },
     // 获取当前启用的最后一个分组名
-    'getActiveGroup': function () {
+    'getActiveGroups': function () {
         var self = this,
             groupSet = self.groupSet,
 
-            ROW_TYPE = HostsEntity.ROW_TYPE,
+            ROW_TYPE = HostsEntity.ROW_TYPE;
 
-            groupName = '';
-
-        groupSet.forEach(function (group) {
-            var allActive = group.members.length > 0;
-            group.members.forEach(function (row) {
-                if (row.type === ROW_TYPE.COMMENT) {
-                    allActive = false;
-                }
-            });
-            if (allActive) {
-                groupName = group.name;
-            }
-        });
-
-        return groupName;
+        const activeGroups = groupSet
+            .filter(group => group.members.find(i => i.type === ROW_TYPE.RULE));
+        return activeGroups.map(group => group.name);
     },
     // 显示当前启用的分组名
     'printActiveGroup': function () {
@@ -250,63 +281,29 @@ HostsEntity.prototype = {
 
             ROW_TYPE = HostsEntity.ROW_TYPE,
 
-            currentGroupName = self.getActiveGroup();
+            currentGroupNames = self.getActiveGroups();
 
-        if (!currentGroupName) {
+        if (!currentGroupNames) {
             console.log('\nNo group enabled now.');
             return;
         }
 
-        console.log('\nCurrent group: %s\n', currentGroupName);
-        self.getRowsOfGroup(currentGroupName || '').forEach(function (row) {
-            switch (row.type) {
-                case ROW_TYPE.EMPTY:
-                    console.log('');
-                    break;
-                case ROW_TYPE.COMMENT:
-                    console.log('#' + row.text);
-                    break;
-                case ROW_TYPE.RULE:
-                    console.log(row.text);
-                    break;
-            }
-        });
-    },
-    // 获取当前启用分组的下一个自定义分组
-    'getGroupAfterActive': function () {
-        var self = this,
-            groupSet = self.groupSet,
-
-            currentGroupName = self.getActiveGroup(),
-            currentGroup = null;
-
-        groupSet.forEach(function (group) {
-            if (group.name === currentGroupName) {
-                currentGroup = group;
-            }
-        });
-
-        if (!currentGroup) {
-            return null;
-        }
-
-        var currentIndex = groupSet.indexOf(currentGroup),
-            nextIndex = Math.max(1, (currentIndex + 1) % groupSet.length);
-
-        return groupSet[nextIndex].name;
+        console.log('\nCurrent enabled group: %s\n', currentGroupNames);
     },
     // 显示目前使用的分组情况
     'printGroupState': function () {
         var self = this,
             groupSet = self.groupSet,
 
-            currentGroupName = self.getActiveGroup();
+            currentGroupNames = self.getActiveGroups();
 
         console.log('\nCurrent group state:\n');
         groupSet.forEach(function (group) {
             var groupName = group.name,
-                isCurrent = groupName === currentGroupName;
-            console.log('\t%s%s%s', isCurrent ? '** ' : '   ', groupName || '(default group)', isCurrent ? ' **' : '');
+                isPermanent = groupName === PERMANENT_GROUP,
+                isCurrent = isPermanent || currentGroupNames.indexOf(groupName) >= 0;
+            if (groupName === ABANDONED_GROUP) return;
+            console.log('\t%s%s%s', isCurrent ? '** ' : '   ', groupName || '[UNGROUPED]', isCurrent ? ' **' : '');
         });
     }
 };
