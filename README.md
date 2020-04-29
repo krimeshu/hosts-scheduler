@@ -47,6 +47,27 @@ hs -n
 hs --next
 ```
 
+### 特殊分组
+
+两个特殊分组 **[ALWAYS_ON]** 和 **[ALWAYS_OFF]**，顾名思义，永远开启和关闭。
+
+```
+#==== [ALWAYS_ON]
+127.0.0.1 localhost
+#====
+
+#==== dev
+127.0.0.1 website_host
+#====
+
+#==== test
+192.168.0.101 website_host
+#====
+
+#==== online
+#====
+```
+
 ## 常用命令
 
 ```base
@@ -54,8 +75,6 @@ hs -v
 hs --version                查看版本
 hs [-g] [<groupName>]
 hs [--group] [<groupName>]  切换到对应分组（未指定分组名则关闭所有自定义分组）
-hs -n
-hs --next                   在现有自定义分组间轮流切换
 hs -s
 hs --state                  查看当前分组启用状态
 hs -l               

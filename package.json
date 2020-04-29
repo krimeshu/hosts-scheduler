@@ -1,6 +1,6 @@
 {
   "name": "hosts-scheduler",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "A command tool to swtich hosts file quickly.",
   "repository": {
     "type": "git",
