@@ -303,7 +303,24 @@ HostsEntity.prototype = {
                 isPermanent = groupName === PERMANENT_GROUP,
                 isCurrent = isPermanent || currentGroupNames.indexOf(groupName) >= 0;
             if (groupName === ABANDONED_GROUP) return;
-            console.log('\t%s%s%s', isCurrent ? '** ' : '   ', groupName || '[UNGROUPED]', isCurrent ? ' **' : '');
+            let name = groupName || '[UNGROUPED]';
+            if (isCurrent) {
+                let total = 0;
+                let enabled = 0;
+                group.members.forEach(row => {
+                    if (row.type === ROW_TYPE.COMMENT &&
+                        isAvailableRule(row.text)) {
+                        total++;
+                    } else if (row.type === ROW_TYPE.RULE) {
+                        total++;
+                        enabled++;
+                    }
+                });
+                const state = (enabled === total) ? '✔' : `(${enabled}/${total})`;
+                console.log('\t%s%s%s', '** ', name, ' **', state);
+            } else {
+                console.log('\t%s%s%s', '   ', name, '');
+            }
         });
     }
 };
